@@ -72,19 +72,20 @@ int main(int argc, char *argv[])
     if (n < 0) error("ERROR reading from socket");
     printf("%s\n", buffer);
 
-    //parse(buffer);
-
+    //TA CODE ENDS HERE//////////////////////////////////////////////////
+    
+    //Parse buffer for file name
     char *file = strtok(buffer, "/");
     file = strtok(NULL," ");
     printf("%s\n", file);
-    // printf("%s\n", file);
+  
     int i = 0;
     for (i = 0; i < sizeof(file)/sizeof(char); i++){
-      putchar(tolower(file[i]));
+      putchar(file[i]);
     }
 
+    //Scan directory
     int has_file = 0;
-
     DIR *d;
     struct dirent *dir;
     d = opendir(".");
@@ -93,24 +94,25 @@ int main(int argc, char *argv[])
             if (strcmp(file, dir->d_name) == 0){
                 has_file = 1;
                 printf("WE GOT YOUR FILE\n");
-                // fileNew = dir->d_name;
             }
-            //printf("WE GOT YOUR FILE");
             printf("%s\n", dir->d_name);
         }
         closedir(d);
     }
     
+    //Check if the file exists
     if(!has_file)
     {
-        printf("AFNF");
+        printf("FNF");
         //send 4xx notfound
-        //close socket
+        close(newsockfd);  // close connection
+        close(sockfd);
         return -1;
     }
 
-    char * ext = strtok(file, ".");
 
+    //Get file extension
+    char * ext = strtok(file, ".");
     char * type = "";
     if (strcmp(ext, "html") == 0 || strcmp(ext, "htm") == 0)
         type = "text/html";
@@ -120,13 +122,13 @@ int main(int argc, char *argv[])
         type = "image/gif";
     else
         type = "text/plain";
-    printf("getting type");
+    printf("%s/n", ext);
 
     //....
     //....
+    //Open file
 
-
-
+    //Contruct reply
     char *reply = 
     "HTTP/1.1 200 OK\n"
     "Date: Thu, 19 Feb 2009 12:27:04 GMT\n"
