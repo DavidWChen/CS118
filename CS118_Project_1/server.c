@@ -77,12 +77,16 @@ int main(int argc, char *argv[])
     //Parse buffer for file name
     char *filename = strtok(buffer, "/");
     filename = strtok(NULL," ");
+    char * to_ext = NULL;
+
+
     printf("%s\n", filename);
   
     int i = 0;
     for (i = 0; i < sizeof(filename)/sizeof(char); i++){
       putchar(filename[i]);
     }
+    to_ext = strdup(filename);
 
     //Scan directory
     int has_file = 0;
@@ -110,9 +114,9 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-
     //Get file extension
-    char * ext = strtok(filename, ".");
+    char * ext = strtok(to_ext, ".");
+    ext = strtok(NULL, "\0");
     char * type = "";
     if (strcmp(ext, "html") == 0 || strcmp(ext, "htm") == 0)
         type = "text/html";
@@ -122,25 +126,77 @@ int main(int argc, char *argv[])
         type = "image/gif";
     else
         type = "text/plain";
-    printf("%s/n", ext);
+    printf("%s\n", ext);
+    printf("%s\n", type);
 
     //....
     //....
     //Open file
+    FILE *file;
+    char *buf;
+    int fileLen;
+    printf("%s\n", filename);
+    file = fopen(filename, "rb");
+    if (file == NULL)
+    {
+        printf("NULL");
+        //send 4xx notfound
+        close(newsockfd);  // close connection
+        close(sockfd);
+        return -1;
+    }
 
+    fseek(file, 0, SEEK_END);
+    fileLen=ftell(file);
+    fseek(file, 0, SEEK_SET);
+    printf("%d\n", fileLen);
+
+    buf = (char *) malloc(fileLen+1);
+    if (!buf) 
+    {
+        fprintf(stderr, "Memory error");
+        fclose(file);
+        return -1;
+    }
+    fread(buf, fileLen, 1, file);
+    fclose(file);
+    printf("%d\n", buf);
     //Contruct reply
-    char *reply = 
-    "HTTP/1.1 200 OK\n"
-    "Date: Thu, 19 Feb 2009 12:27:04 GMT\n"
+
+
+    char header[102400+fileLen];
+
+    sprintf(header, 
+    "HTTP/1.1 200 OK\n"//If this returns, it will always be 200
+    "Date: Thu, 19 Feb 2009 12:27:04 GMT\n"//time()
     "Server: Apache/2.2.3\n"
     "Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\n"
     "ETag: \"56d-9989200-1132c580\"\n"
-    "Content-Type: text/html\n"
-    "Content-Length: 7\n"
+    "Content-Type: image/jpeg\n"
+    "Content-Length: %i\n"
     "Accept-Ranges: bytes\n"
     "Connection: close\n"
-    "\n"
-    "GIF89a˙";
+        "\n", fileLen);
+
+    printf("reply");
+    char *reply = (char*)malloc(strlen(header)+fileLen);
+    strcpy(reply, header);
+    memcpy(reply+strlen(header), buf, fileLen);
+    send(newsockfd, reply, strlen(header)+fileLen, 0);
+
+
+    // char *reply = 
+    // "HTTP/1.1 200 OK\n"
+    // "Date: Thu, 19 Feb 2009 12:27:04 GMT\n"
+    // "Server: Apache/2.2.3\n"
+    // "Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\n"
+    // "ETag: \"56d-9989200-1132c580\"\n"
+    // "Content-Type: text/html\n"
+    // "Content-Length: 7\n"
+    // "Accept-Ranges: bytes\n"
+    // "Connection: close\n"
+    // "\n"
+    // "GIF89a˙";
 
     send(newsockfd, reply, strlen(reply), 0);
     //n = send(newsockfd, &resp, sizeof(file), 0);
