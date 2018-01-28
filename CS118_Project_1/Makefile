@@ -3,6 +3,8 @@ CPPFLAGS=-g -Wall
 USERID=123456789
 CLASSES=
 
+default: clean all
+	
 all: server client
 
 server: $(CLASSES)
