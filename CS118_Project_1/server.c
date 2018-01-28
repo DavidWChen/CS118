@@ -75,13 +75,13 @@ int main(int argc, char *argv[])
     //TA CODE ENDS HERE//////////////////////////////////////////////////
     
     //Parse buffer for file name
-    char *file = strtok(buffer, "/");
-    file = strtok(NULL," ");
-    printf("%s\n", file);
+    char *filename = strtok(buffer, "/");
+    filename = strtok(NULL," ");
+    printf("%s\n", filename);
   
     int i = 0;
-    for (i = 0; i < sizeof(file)/sizeof(char); i++){
-      putchar(file[i]);
+    for (i = 0; i < sizeof(filename)/sizeof(char); i++){
+      putchar(filename[i]);
     }
 
     //Scan directory
@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
     d = opendir(".");
     if (d) {
         while ((dir = readdir(d)) != NULL) {
-            if (strcmp(file, dir->d_name) == 0){
+            if (strcmp(filename, dir->d_name) == 0){
                 has_file = 1;
                 printf("WE GOT YOUR FILE\n");
             }
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
 
 
     //Get file extension
-    char * ext = strtok(file, ".");
+    char * ext = strtok(filename, ".");
     char * type = "";
     if (strcmp(ext, "html") == 0 || strcmp(ext, "htm") == 0)
         type = "text/html";
