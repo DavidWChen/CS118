@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
         while ((dir = readdir(d)) != NULL) {
             if (strcmp(file, dir->d_name) == 0){
                 has_file = 1;
-                // printf("WE GOT YOUR FILE\n");
+                printf("WE GOT YOUR FILE\n");
                 // fileNew = dir->d_name;
             }
             //printf("WE GOT YOUR FILE");
@@ -100,12 +100,13 @@ int main(int argc, char *argv[])
         }
         closedir(d);
     }
-
+    
     if(!has_file)
     {
+        printf("AFNF");
         //send 4xx notfound
         //close socket
-        return;
+        return -1;
     }
 
     char * ext = strtok(file, ".");
@@ -119,51 +120,11 @@ int main(int argc, char *argv[])
         type = "image/gif";
     else
         type = "text/plain";
+    printf("getting type");
 
-    // FILE* resp = fopen(file, "r");
-    // int fd = fileno(resp);
+    //....
+    //....
 
-    // char file_buff[sizeof(file)/sizeof(char)+1];
-
-    // read(fd, file_buff, sizeof(file)/sizeof(char));
-
-    // printf("%s\n", file_buff);
-    //reply to client
-    FILE* resp = fopen(file, "r");
-    //Get file length
-    fseek(file, 0, SEEK_END);
-    fileLen=ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-    //Allocate memory
-    buffer=(char *)malloc(fileLen+1);
-    if (!buffer)    
-    {
-        fprintf(stderr, "Memory error!");
-        fclose(file);
-        return;
-    }
-    fread(buffer, fileLen, 1, file);
-    fclose(file);
-
-    char header[102400];
-
-    sprintf(header, 
-    "HTTP/1.1 200 OK\n"//If this returns, it will always be 200
-    "Date: Thu, 19 Feb 2009 12:27:04 GMT\n"//time()
-    "Server: Apache/2.2.3\n"
-    "Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\n"
-    "ETag: \"56d-9989200-1132c580\"\n"
-    "Content-Type: image/png\n"
-    "Content-Length: %i\n"
-    "Accept-Ranges: bytes\n"
-    "Connection: close\n"
-        "\n", fileLen);
-
-    char *reply = (char*)malloc(strlen(header)+fileLen);
-    strcpy(reply, header);
-    memcpy(reply+strlen(header), buffer, fileLen)
-    send(client, reply, strlen(header)+fileLen, 0)
 
 
     char *reply = 
