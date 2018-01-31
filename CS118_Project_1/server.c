@@ -14,6 +14,10 @@
 #include <ctype.h>
 #include <dirent.h>
 
+
+int sockfd, newsockfd, portno;
+
+
 void error(char *msg)
 {
     perror(msg);
@@ -29,9 +33,92 @@ char * parse(char* req)
     return file;
 }
 
+char *replaceWord(const char *s, const char *oldW, const char *newW)
+{
+    char *result;
+    int i, cnt = 0;
+    int newWlen = strlen(newW);
+    int oldWlen = strlen(oldW);
+ 
+    for (i = 0; s[i] != '\0'; i++)
+    {
+        if (strstr(&s[i], oldW) == &s[i])
+        {
+            cnt++;
+            i += oldWlen - 1;
+        }
+    }
+
+    result = (char *)malloc(i + cnt * (newWlen - oldWlen) + 1);
+ 
+    i = 0;
+    while (*s)
+    {
+        if (strstr(s, oldW) == s)
+        {
+            strcpy(&result[i], newW);
+            i += newWlen;
+            s += oldWlen;
+        }
+        else
+            result[i++] = *s++;
+    }
+    result[i] = '\0';
+    return result;
+}
+
+int message_handler(char * filename, char * type)
+{    
+    FILE *file;
+    char *buf;
+    int fileLen;
+    printf("%s\n", filename);
+    file = fopen(filename, "rb");
+
+    fseek(file, 0, SEEK_END);
+    fileLen=ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    buf = (char *) malloc(fileLen+1);
+    if (!buf) 
+    {
+        fprintf(stderr, "Memory error");
+        fclose(file);
+        return -1;
+    }
+    fread(buf, fileLen, 1, file);
+    fclose(file);
+
+    //Contruct reply
+    char header[102400+fileLen];
+
+    sprintf(header, 
+    "HTTP/1.1 200 OK\n"//If this returns, it will always be 200
+    "Date: Thu, 19 Feb 2009 12:27:04 GMT\n"//time()
+    "Server: Apache/2.2.3\n"
+    "Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\n"
+    "ETag: \"56d-9989200-1132c580\"\n"
+    "Content-Type: %s\n"
+    "Content-Length: %i\n"
+    "Accept-Ranges: bytes\n"
+    "Connection: close\n"
+        "\n", type, fileLen);
+
+    printf("reply");
+    char *reply = (char*)malloc(strlen(header)+fileLen);
+    strcpy(reply, header);
+    memcpy(reply+strlen(header), buf, fileLen);
+    send(newsockfd, reply, strlen(header)+fileLen, 0);
+
+    close(newsockfd);  // close connection
+    close(sockfd);
+
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
-    int sockfd, newsockfd, portno;
+    // int sockfd, newsockfd, portno;
     socklen_t clilen;
     struct sockaddr_in serv_addr, cli_addr;
 
@@ -79,9 +166,11 @@ int main(int argc, char *argv[])
     filename = strtok(NULL," ");
     char * to_ext = NULL;
 
+    char * ascii = "%20";
+    char * space = " ";
+    filename = replaceWord(filename, ascii, space);
 
-    printf("%s\n", filename);
-  
+    //printf("%s\n", filename);
     int i = 0;
     for (i = 0; i < sizeof(filename)/sizeof(char); i++){
       putchar(filename[i]);
@@ -104,59 +193,10 @@ int main(int argc, char *argv[])
         closedir(d);
     }
     
-    //Check if the file exists
+    //Check if the file exists, else 404
     if(!has_file)
     {
-        //404
-///////////////////////////////////////////////////////
-            FILE *file;
-    char *buf;
-    int fileLen;
-    printf("%s\n", filename);
-    file = fopen("404.html", "rb");
-
-    fseek(file, 0, SEEK_END);
-    fileLen=ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-    buf = (char *) malloc(fileLen+1);
-    if (!buf) 
-    {
-        fprintf(stderr, "Memory error");
-        fclose(file);
-        return -1;
-    }
-    fread(buf, fileLen, 1, file);
-    fclose(file);
-
-    //Contruct reply
-
-
-    char header[102400+fileLen];
-
-    sprintf(header, 
-    "HTTP/1.1 200 OK\n"//If this returns, it will always be 200
-    "Date: Thu, 19 Feb 2009 12:27:04 GMT\n"//time()
-    "Server: Apache/2.2.3\n"
-    "Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\n"
-    "ETag: \"56d-9989200-1132c580\"\n"
-    "Content-Type: text/html\n"
-    "Content-Length: %i\n"
-    "Accept-Ranges: bytes\n"
-    "Connection: close\n"
-        "\n", fileLen);
-
-    printf("reply");
-    char *reply = (char*)malloc(strlen(header)+fileLen);
-    strcpy(reply, header);
-    memcpy(reply+strlen(header), buf, fileLen);
-    send(newsockfd, reply, strlen(header)+fileLen, 0);
-
-    close(newsockfd);  // close connection
-    close(sockfd);
-
-    return 0;
-///////////////////////////////////////////////////////
+       message_handler("404.html", "text/html");
     }
 
     //Get file extension
@@ -170,67 +210,11 @@ int main(int argc, char *argv[])
     else if (strcmp(ext, "gif") == 0)
         type = "image/gif";
     else
-        type = "text/plain";
+        type = "application/octet";
     printf("%s\n", ext);
     printf("%s\n", type);
 
-    //....
-    //....
     //Open file
-    FILE *file;
-    char *buf;
-    int fileLen;
-    printf("%s\n", filename);
-    file = fopen(filename, "rb");
-    if (file == NULL)
-    {
-        printf("NULL");
-        //send 4xx notfound
-        close(newsockfd);  // close connection
-        close(sockfd);
-        return -1;
-    }
-
-    fseek(file, 0, SEEK_END);
-    fileLen=ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-
-    buf = (char *) malloc(fileLen+1);
-    if (!buf) 
-    {
-        fprintf(stderr, "Memory error");
-        fclose(file);
-        return -1;
-    }
-    fread(buf, fileLen, 1, file);
-    fclose(file);
-
-    //Contruct reply
-
-
-    char header[102400+fileLen];
-
-    sprintf(header, 
-    "HTTP/1.1 200 OK\n"//If this returns, it will always be 200
-    "Date: Thu, 19 Feb 2009 12:27:04 GMT\n"//time()
-    "Server: Apache/2.2.3\n"
-    "Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\n"
-    "ETag: \"56d-9989200-1132c580\"\n"
-    "Content-Type: %s\n"
-    "Content-Length: %i\n"
-    "Accept-Ranges: bytes\n"
-    "Connection: close\n"
-        "\n", type, fileLen);
-
-    printf("reply");
-    char *reply = (char*)malloc(strlen(header)+fileLen);
-    strcpy(reply, header);
-    memcpy(reply+strlen(header), buf, fileLen);
-    send(newsockfd, reply, strlen(header)+fileLen, 0);
-
-    close(newsockfd);  // close connection
-    close(sockfd);
-
-    return 0;
+    message_handler(filename, type);
 }
+
