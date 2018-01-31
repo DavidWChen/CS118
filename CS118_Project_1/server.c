@@ -14,23 +14,12 @@
 #include <ctype.h>
 #include <dirent.h>
 
-
 int sockfd, newsockfd, portno;
-
 
 void error(char *msg)
 {
     perror(msg);
     exit(1);
-}
-
-char * parse(char* req)
-{
-    char *file = strtok(req, "/");
-    file = strtok(NULL," ");
-
-    printf("%s\n", file);
-    return file;
 }
 
 char *replaceWord(const char *s, const char *oldW, const char *newW)
@@ -72,7 +61,6 @@ int message_handler(char * filename, char * type)
     FILE *file;
     char *buf;
     int fileLen;
-    printf("%s\n", filename);
     file = fopen(filename, "rb");
 
     fseek(file, 0, SEEK_END);
@@ -90,7 +78,7 @@ int message_handler(char * filename, char * type)
     fclose(file);
 
     //Contruct reply
-    char header[102400+fileLen];
+    char header[102400];
 
     sprintf(header, 
     "HTTP/1.1 200 OK\n"//If this returns, it will always be 200
@@ -104,11 +92,8 @@ int message_handler(char * filename, char * type)
     "Connection: close\n"
         "\n", type, fileLen);
 
-    printf("reply");
-    char *reply = (char*)malloc(strlen(header)+fileLen);
-    strcpy(reply, header);
-    memcpy(reply+strlen(header), buf, fileLen);
-    send(newsockfd, reply, strlen(header)+fileLen, 0);
+    send(newsockfd, header, strlen(header), 0);
+    send(newsockfd, buf, fileLen, 0);
 
     close(newsockfd);  // close connection
     close(sockfd);
@@ -160,8 +145,6 @@ int main(int argc, char *argv[])
     printf("%s\n", buffer);
 
     //TA CODE ENDS HERE//////////////////////////////////////////////////
-    
-    //Parse buffer for file name
     char *filename = strtok(buffer, "/");
     filename = strtok(NULL," ");
     char * to_ext = NULL;
@@ -170,7 +153,6 @@ int main(int argc, char *argv[])
     char * space = " ";
     filename = replaceWord(filename, ascii, space);
 
-    //printf("%s\n", filename);
     int i = 0;
     for (i = 0; i < sizeof(filename)/sizeof(char); i++){
       putchar(filename[i]);
