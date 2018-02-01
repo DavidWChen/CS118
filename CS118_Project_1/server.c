@@ -22,6 +22,7 @@ void error(char *msg)
     exit(1);
 }
 
+//Replaces a substring in a c string with another substring
 char *replaceWord(const char *s, const char *oldW, const char *newW)
 {
     char *result;
@@ -56,17 +57,22 @@ char *replaceWord(const char *s, const char *oldW, const char *newW)
     return result;
 }
 
+//Takes in a file name and filetype and uses them to serve a file
 int message_handler(char * filename, char * type)
 {    
     FILE *file;
     char *buf;
     int fileLen;
+
+    //Open file
     file = fopen(filename, "rb");
 
+    //Get filesize
     fseek(file, 0, SEEK_END);
     fileLen=ftell(file);
     fseek(file, 0, SEEK_SET);
 
+    //Allocate memory and read file into buffer
     buf = (char *) malloc(fileLen+1);
     if (!buf) 
     {
@@ -79,12 +85,11 @@ int message_handler(char * filename, char * type)
 
     //Contruct reply
     char header[102400];
-
     sprintf(header, 
     "HTTP/1.1 200 OK\n"//If this returns, it will always be 200
-    "Date: Thu, 19 Feb 2009 12:27:04 GMT\n"//time()
-    "Server: Apache/2.2.3\n"
-    "Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\n"
+    "Date: Fri, 2 Feb 2018 12:27:04 GMT\n"//time()
+    "Server: Chrome/2.2.3\n"
+    "Last-Modified: Wed, 31 Jan 2018 16:05:58 GMT\n"
     "ETag: \"56d-9989200-1132c580\"\n"
     "Content-Type: %s\n"
     "Content-Length: %i\n"
@@ -92,6 +97,7 @@ int message_handler(char * filename, char * type)
     "Connection: close\n"
         "\n", type, fileLen);
 
+    //Send header and file
     send(newsockfd, header, strlen(header), 0);
     send(newsockfd, buf, fileLen, 0);
 
@@ -168,9 +174,7 @@ int main(int argc, char *argv[])
         while ((dir = readdir(d)) != NULL) {
             if (strcmp(filename, dir->d_name) == 0){
                 has_file = 1;
-                printf("WE GOT YOUR FILE\n");
             }
-            printf("%s\n", dir->d_name);
         }
         closedir(d);
     }
@@ -184,6 +188,10 @@ int main(int argc, char *argv[])
     //Get file extension
     char * ext = strtok(to_ext, ".");
     ext = strtok(NULL, "\0");
+    int j = 0;
+    for(j = 0; ext[j]; j++){
+        ext[j] = tolower(ext[j]);
+    }
     char * type = "";
     if (strcmp(ext, "html") == 0 || strcmp(ext, "htm") == 0)
         type = "text/html";
@@ -193,10 +201,8 @@ int main(int argc, char *argv[])
         type = "image/gif";
     else
         type = "application/octet";
-    printf("%s\n", ext);
-    printf("%s\n", type);
 
-    //Open file
+    //Handle file
     message_handler(filename, type);
 }
 

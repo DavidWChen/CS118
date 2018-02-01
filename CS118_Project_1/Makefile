@@ -1,20 +1,17 @@
 CC=gcc
 CPPFLAGS=-g -Wall
-USERID=123456789
+USERID=904622289
 CLASSES=
 
 default: clean all
 	
-all: server client
+all: server 
 
 server: $(CLASSES)
 	$(CC) -o $@ $^ $(CPPFLAGS) $@.c
 
-client: $(CLASSES)
-	$(CC) -o $@ $^ $(CPPFLAGS) $@.c
-
 clean:
-	rm -rf *.o *~ *.gch *.swp *.dSYM server client *.tar.gz
+	rm -rf *.o *~ *.gch *.swp *.dSYM server client *.tar.gz *.gif *.jpeg *.jpg
 
 dist: tarball
 
