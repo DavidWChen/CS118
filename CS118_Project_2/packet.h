@@ -1,4 +1,5 @@
 #include <string>
+#include <time>
 using namespace std;
 
 class Packet
@@ -6,8 +7,8 @@ class Packet
 	public:
 	//timeout value = size 4
 	//flags = size 1
-	int synFlag = 0;;//for init
-	int finFlag = 0;;//for close
+	int synFlag = 0;//for init
+	int finFlag = 0;//for close
 	int ACK = 0;//for recv
 	int request = 1;
 	int lastPkt = 0;
@@ -70,7 +71,10 @@ string PacketToHeader(Packet packet)
 	return header;
 }
 
+time_t SendPacket(Packet packet)
+{
 
+}
 
 
 
