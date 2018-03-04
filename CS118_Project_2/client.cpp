@@ -57,11 +57,11 @@ int main(int argc, char *argv[])
     cout << filename;
 
     Packet packet;
-    
+
     packet.filename = filename;
     packet.synFlag = 1;
     //packet.sourcePort;
-    packet.destPort = portno;
+    packet.dstPort = portno;
     char* data[896];
 
     bool lastPacket = 0;

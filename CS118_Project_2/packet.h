@@ -5,68 +5,70 @@ class Packet
 {
 	public:
 	//timeout value = size 4
-	float RTO; //4
-
 	//flags = size 1
-	bool synFlag = 0;;//for init
-	bool finFlag = 0;;//for close
-	bool ACK = 0;//for recv
-	bool request = 1;
-	bool lastPkt =0;
-	bool retransmit;
+	int synFlag = 0;;//for init
+	int finFlag = 0;;//for close
+	int ACK = 0;//for recv
+	int request = 1;
+	int lastPkt = 0;
+	int retransmit;
 	//packet info = size 4
 	int seq = 0; //sequence number of packet 1st byte
 	int wnd = 5120; //window size
 	int pktSize = 1024; //size of actual packet, equal to header + data length
-	int sourcePort;//port number of source
-	int destPort;//port number of destination
-	
+	int srcPort;//port number of source
+	int dstPort;//port number of destination
+	int numPkt;
 	string filename;
 	//actual packet data
-	char* data;
+	//may need to cast to char buffer
+	string data;
 };
 
 string getSubstring(string str, string pos_str1, string pos_str2)
 {
 	size_t pos1 = str.find(pos_str1);
 	size_t pos2 = str.find(pos_str2);
-	return str.substr(pos1+sizeof(pos_str1)/sizeof(char),pos_str2);
-}
+	return str.substr(pos1+sizeof(pos_str1)/sizeof(char), pos2);
+} 
 
 Packet stringToPacket(string str, Packet packet)
 {
-	// size_t pos_RTO = str.find("RTO = ");
-	// size_t pos_synFlag = str.find(" synFlag = ");
-	// size_t pos_finFlag = str.find(" finFlag = ");
-	// size_t pos_ACK = str.find(" ACK = ");
-	// size_t pos_request = str.find(" request = ");
-	// size_t pos_lastPkt = str.find(" lastPkt = ");
-	// size_t pos_seq = str.find(" seq = ");
-	// size_t pos_wnd = str.find(" wnd = ");
-	// size_t pos_pktSize = str.find(" pktSize = ");
-	// size_t pos_sourcePort = str.find(" sourcePort = ");
-	// size_t pos_destPort = str.find(" destPort = ");
-	// size_t pos_filename = str.find(" filename = ");
-	// size_t pos_data = str.find(" data = ");
-
-
-	
-	packet.RTO = float(getSubstring(str, "RTO = ", " synFlag = "));
-	packet.RTO = float(getSubstring(str, "RTO = ", " synFlag = "));
-	packet.RTO = float(getSubstring(str, "RTO = ", " synFlag = "));
-	packet.RTO = float(getSubstring(str, "RTO = ", " synFlag = "));
-	packet.RTO = float(getSubstring(str, "RTO = ", " synFlag = "));
-	packet.RTO = float(getSubstring(str, "RTO = ", " synFlag = "));
-	packet.RTO = float(getSubstring(str, "RTO = ", " synFlag = "));
-	packet.RTO = float(getSubstring(str, "RTO = ", " synFlag = "));
-	packet.RTO = float(getSubstring(str, "RTO = ", " synFlag = "));
-	packet.RTO = float(getSubstring(str, "RTO = ", " synFlag = "));
-	packet.RTO = float(getSubstring(str, "RTO = ", " synFlag = "));
+	packet.synFlag = stoi(getSubstring(str, " synFlag = ", " finFlag = "));
+	packet.finFlag = stoi(getSubstring(str, " finFlag = ", " ACK = "));
+	packet.ACK = stoi(getSubstring(str, " ACK = ", " request = "));
+	packet.request = stoi(getSubstring(str, " request = ", " lastPkt = "));
+	packet.lastPkt = stoi(getSubstring(str, " lastPkt = ", " retransmit = "));
+	packet.retransmit = stoi(getSubstring(str, " retransmit = ", " seq = "));
+	packet.seq = stoi(getSubstring(str, " seq = ", " win = "));
+	packet.wnd = stoi(getSubstring(str, " wnd = ", " pktSize = "));
+	packet.pktSize = stoi(getSubstring(str, "pktSize = ", " srcPort = "));
+    packet.srcPort = stoi(getSubstring(str, "srcPort = ", " dstPort = "));
+    packet.dstPort = stoi(getSubstring(str, "dstPort = ", " numPkt = "));
+    packet.numPkt = stoi(getSubstring(str, "numPkt = ", " filename = "));
+    packet.filename = getSubstring(str, "filename = ", " data = ");
+    size_t pkt_pos = str.find("data = ");
+    packet.data = str.substr(pkt_pos);//may need to cast to char
 
 	return packet;
 }
 
-
+string PacketToHeader(Packet packet)
+{
+	string header = " synFlag = " + to_string(packet.synFlag) 
+		+ " finFlag = " + to_string(packet.finFlag) 
+		+ " ACK = " + to_string(packet.ACK) 
+		+ " request = " + to_string(packet.request) 
+		+ " lastPkt = " + to_string(packet.lastPkt) 
+		+ " retransmit = " + to_string(packet.retransmit)
+		+ " seq = " + to_string(packet.seq) 
+		+ " wnd = " + to_string(packet.wnd)
+		+ " pktSize = " + to_string(packet.pktSize)
+		+ " srcPort = " + to_string(packet.srcPort)
+		+ " dstPort = " + to_string(packet.dstPort) 
+		+ " filename = " + (packet.filename);
+	return header;
+}
 
 
 

@@ -1,5 +1,5 @@
 CC=g++
-CPPFLAGS=-g -Wall
+CPPFLAGS=-g -Wall -std=c++11
 USERID=904622289
 CLASSES=
 
