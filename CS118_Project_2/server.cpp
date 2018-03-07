@@ -159,14 +159,8 @@ int main(int argc, char *argv[])
         }
         
         //Receive ACK 
-        while (1)
+        if((recvfrom( fd, buffer, sizeof(buffer) - 1, 0, (struct sockaddr*)&clientaddr, &clientLen)) >= 0)
         {
-            int length = recvfrom( fd, buffer, sizeof(buffer) - 1, 0, (struct sockaddr*)&clientaddr, &clientLen);
-            if ( length < 0 ) 
-            {
-                break;
-            }
-        
             Packet ACK;
             ACK = stringToPacket(buffString,ACK); //set ACK packet to info from client
             cwnd[ACK.element] = 0;
