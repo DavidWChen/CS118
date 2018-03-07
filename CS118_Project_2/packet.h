@@ -1,5 +1,5 @@
 #include <string>
-#include <time>
+#include <time.h>
 using namespace std;
 
 class Packet
@@ -7,10 +7,11 @@ class Packet
 	public:
 	//timeout value = size 4
 	//flags = size 1
+	int element;
 	int synFlag = 0;//for init
 	int finFlag = 0;//for close
 	int ACK = 0;//for recv
-	int request = 1;
+	int request = 0;
 	int lastPkt = 0;
 	int retransmit;
 	//packet info = size 4
@@ -35,6 +36,7 @@ string getSubstring(string str, string pos_str1, string pos_str2)
 
 Packet stringToPacket(string str, Packet packet)
 {
+	packet.element = stoi(getSubstring(str, " element = ", " synFlag = "));
 	packet.synFlag = stoi(getSubstring(str, " synFlag = ", " finFlag = "));
 	packet.finFlag = stoi(getSubstring(str, " finFlag = ", " ACK = "));
 	packet.ACK = stoi(getSubstring(str, " ACK = ", " request = "));
@@ -56,7 +58,8 @@ Packet stringToPacket(string str, Packet packet)
 
 string PacketToHeader(Packet packet)
 {
-	string header = " synFlag = " + to_string(packet.synFlag) 
+	string header = " element = " + to_string(packet.element)
+		+ " synFlag = " + to_string(packet.synFlag) 
 		+ " finFlag = " + to_string(packet.finFlag) 
 		+ " ACK = " + to_string(packet.ACK) 
 		+ " request = " + to_string(packet.request) 
@@ -71,12 +74,8 @@ string PacketToHeader(Packet packet)
 	return header;
 }
 
-time_t SendPacket(Packet packet)
-{
 
-}
-
-
+	
 
 
 
