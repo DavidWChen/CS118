@@ -162,6 +162,7 @@ int main(int argc, char *argv[])
         if((recvfrom( fd, buffer, sizeof(buffer) - 1, 0, (struct sockaddr*)&clientaddr, &clientLen)) >= 0)
         {
             Packet ACK;
+            string buffString = buffer;
             ACK = stringToPacket(buffString,ACK); //set ACK packet to info from client
             cwnd[ACK.element] = 0;
             timers[ACK.element] = 0;
