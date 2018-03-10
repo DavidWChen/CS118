@@ -1,6 +1,8 @@
 #include <string>
 #include <time.h>
+#include <iostream>
 using namespace std;
+
 
 class Packet
 {
@@ -36,6 +38,7 @@ string getSubstring(string str, string pos_str1, string pos_str2)
 
 Packet stringToPacket(string str, Packet packet)
 {
+	cout << str;
 	packet.element = stoi(getSubstring(str, " element = ", " synFlag = "));
 	packet.synFlag = stoi(getSubstring(str, " synFlag = ", " finFlag = "));
 	packet.finFlag = stoi(getSubstring(str, " finFlag = ", " ACK = "));
@@ -45,6 +48,7 @@ Packet stringToPacket(string str, Packet packet)
 	packet.retransmit = stoi(getSubstring(str, " retransmit = ", " seq = "));
 	packet.seq = stoi(getSubstring(str, " seq = ", " win = "));
 	packet.wnd = stoi(getSubstring(str, " wnd = ", " pktSize = "));
+
 	packet.pktSize = stoi(getSubstring(str, "pktSize = ", " srcPort = "));
     packet.srcPort = stoi(getSubstring(str, "srcPort = ", " dstPort = "));
     packet.dstPort = stoi(getSubstring(str, "dstPort = ", " numPkt = "));

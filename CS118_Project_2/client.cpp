@@ -22,17 +22,19 @@ struct sockaddr_in serv_addr;
 struct hostent *server;  // contains tons of information, including the server's IP address
 //FILE * file;
 int numPacketsRecvd = 0;
-int numPackets =0;
+int numPackets = 0;
 
 string a = "received.data";
+
 ofstream received(a.c_str());
 
 int main(int argc, char *argv[])
 {
+    
     if (argc < 4) {
      fprintf(stderr,"usage %s hostname port\n", argv[0]);
      exit(0);
- }
+    }
 
 //create socket
     server = gethostbyname(argv[1]);  // takes a string like "www.yahoo.com", and returns a struct hostent which contains information, as IP address, address type, the length of the addresses...
@@ -47,6 +49,7 @@ int main(int argc, char *argv[])
         perror("socket failed");
         return 1;
     }
+    printf("got here\n" );
     struct sockaddr_in serveraddr;
     memset( &serveraddr, 0, sizeof(serveraddr) );
 

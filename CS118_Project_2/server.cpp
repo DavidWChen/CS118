@@ -22,6 +22,7 @@ using namespace std;
 
 
 
+
 void ACKed(Packet packet, time_t timers[], bool cwnd[])//Server
 {
     timers[packet.element] = 0;
@@ -67,7 +68,6 @@ int main(int argc, char *argv[])
     char buffer[1024];
     int length = recvfrom(fd, buffer, sizeof(buffer)-1, 0, (struct sockaddr*)&clientaddr, &clientLen); //receive request from client
     string buffString = buffer;
-
     Packet SYN;
     SYN = stringToPacket(buffString,SYN); //set SYN packet to info from client
     cout << "Receiving packet" << SYN.seq << endl; //print ACK to screen
