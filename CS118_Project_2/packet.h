@@ -32,13 +32,19 @@ class Packet
 string getSubstring(string str, string pos_str1, string pos_str2)
 {
 	size_t pos1 = str.find(pos_str1);
+	cout << pos1 << '\n';
 	size_t pos2 = str.find(pos_str2);
-	return str.substr(pos1+sizeof(pos_str1)/sizeof(char), pos2);
+	cout << pos2 << '\n';
+	//cout << len(pos_str1) << '\n';
+	//cout << sizeof(pos_str1)/sizeof(char)<< '\n';
+	string rtn_val = str.substr(pos1+pos_str1.length(), pos2-pos1-pos_str1.length());
+	cout << "return " << rtn_val << '\n';
+	return rtn_val;
 } 
 
 Packet stringToPacket(string str, Packet packet)
 {
-	cout << str;
+	cout << '\n' << '\n' << "STRING: " << str <<'\n';
 	packet.element = stoi(getSubstring(str, " element = ", " synFlag = "));
 	packet.synFlag = stoi(getSubstring(str, " synFlag = ", " finFlag = "));
 	packet.finFlag = stoi(getSubstring(str, " finFlag = ", " ACK = "));
@@ -46,7 +52,7 @@ Packet stringToPacket(string str, Packet packet)
 	packet.request = stoi(getSubstring(str, " request = ", " lastPkt = "));
 	packet.lastPkt = stoi(getSubstring(str, " lastPkt = ", " retransmit = "));
 	packet.retransmit = stoi(getSubstring(str, " retransmit = ", " seq = "));
-	packet.seq = stoi(getSubstring(str, " seq = ", " win = "));
+	packet.seq = stoi(getSubstring(str, " seq = ", " wnd = "));
 	packet.wnd = stoi(getSubstring(str, " wnd = ", " pktSize = "));
 
 	packet.pktSize = stoi(getSubstring(str, "pktSize = ", " srcPort = "));
@@ -55,6 +61,7 @@ Packet stringToPacket(string str, Packet packet)
     packet.numPkt = stoi(getSubstring(str, "numPkt = ", " filename = "));
     packet.filename = getSubstring(str, "filename = ", " data = ");
     size_t pkt_pos = str.find("data = ");
+    cout << pkt_pos;
     packet.data = str.substr(pkt_pos);//may need to cast to char
 
 	return packet;
@@ -74,6 +81,7 @@ string PacketToHeader(Packet packet)
 		+ " pktSize = " + to_string(packet.pktSize)
 		+ " srcPort = " + to_string(packet.srcPort)
 		+ " dstPort = " + to_string(packet.dstPort) 
+		+ " numPkt = " + to_string(packet.numPkt)
 		+ " filename = " + (packet.filename);
 	return header;
 }

@@ -68,6 +68,7 @@ int main(int argc, char *argv[])
     char buffer[1024];
     int length = recvfrom(fd, buffer, sizeof(buffer)-1, 0, (struct sockaddr*)&clientaddr, &clientLen); //receive request from client
     string buffString = buffer;
+    //cout << getSubstring(buffString, " element = ", " synFlag = ");
     Packet SYN;
     SYN = stringToPacket(buffString,SYN); //set SYN packet to info from client
     cout << "Receiving packet" << SYN.seq << endl; //print ACK to screen
