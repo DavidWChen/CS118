@@ -117,17 +117,17 @@ int main(int argc, char *argv[])
         {
             //ack got dropped
             ackPackets[temp.element].seq = temp.seq;
-            cout << "Sending packet " << temp.seq << " Retransmission" << endl;
-            string ack = PacketToHeader(ackPackets[temp.element]);
+            cout << "Sending packet " << temp.seq%30720 << " Retransmission" << endl;
+            string ack = PacketToHeader(ackPackets[temp.element]) + " data = ";
             sendto(fd, ack.c_str(), strlen(ack.c_str()), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)); 
         }
         else if (arrayOfRecvdPackets[temp.element] == 0)
         {
             //send ack
             arrayOfRecvdPackets[temp.element] = 1;
-            ackPackets[temp.element].seq = temp.seq;
+            ackPackets[temp.element].seq = temp.seq%30720;
             cout << "Sending packet " << temp.seq << endl;
-            string ack = PacketToHeader(ackPackets[temp.element]);
+            string ack = PacketToHeader(ackPackets[temp.element]) + " data = ";
             sendto(fd, ack.c_str(), strlen(ack.c_str()), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)); 
         }
         int counter = 0;
@@ -147,10 +147,10 @@ int main(int argc, char *argv[])
 
     Packet FIN;
     FIN.finFlag = 1;
-    string fin = PacketToHeader(FIN);
+    string fin = PacketToHeader(FIN) + " data = ";
 
     int lastSeq = arrayOfPackets[numPackets].seq + (arrayOfPackets[numPackets].data).size();
-    cout << "Sending packet " << lastSeq << " FIN" << endl;
+    cout << "Sending packet " << lastSeq%30720 << " FIN" << endl;
     sendto(fd, fin.c_str(), strlen(fin.c_str()), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)); //send FIN
 
     //fs = from server
@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
             Packet FINACK;
             FINACK.finFlag = 1;
             FINACK.ACK = 1;
-            string finack = PacketToHeader(FINACK);
+            string finack = PacketToHeader(FINACK) + " data = ";
             sendto(fd, finack.c_str(), strlen(finack.c_str()), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)); //send FINACL
             usleep(1000000);
             close(fd);

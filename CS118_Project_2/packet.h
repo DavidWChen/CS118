@@ -20,13 +20,13 @@ class Packet
 	int seq = 0; //sequence number of packet 1st byte
 	int wnd = 5120; //window size
 	int pktSize = 1024; //size of actual packet, equal to header + data length
-	int srcPort;//port number of source
-	int dstPort;//port number of destination
-	int numPkt;
-	string filename;
+	int srcPort = 0;//port number of source
+	int dstPort =0;//port number of destination
+	int numPkt =0;
+	string filename ="";
 	//actual packet data
 	//may need to cast to char buffer
-	string data;
+	string data = "THIS IS THE DATA";
 };
 
 string getSubstring(string str, string pos_str1, string pos_str2)

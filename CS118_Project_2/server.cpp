@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
     //cout << getSubstring(buffString, " element = ", " synFlag = ");
     Packet SYN;
     SYN = stringToPacket(buffString,SYN); //set SYN packet to info from client
-    cout << "Receiving packet" << SYN.seq << endl; //print ACK to screen
+    cout << "Receiving packet " << SYN.seq << endl; //print ACK to screen
 
     // string too_send = "Test String Sent";
     // sendto(fd, too_send.c_str(), sizeof(too_send), 0, (struct sockaddr *)&clientaddr, clientLen);
@@ -139,6 +139,7 @@ int main(int argc, char *argv[])
         size_t begin = packets[i].seq;
         size_t length = dataSize/sizeof(char);
         packets[i].data = dataString.substr(begin,length); //read in all the data into the packets
+        packets[i].filename = requestedFile;
     }
 
 
@@ -174,9 +175,10 @@ int main(int argc, char *argv[])
             if (cwnd[i] == 1)
             {
                 time(&timer);  /* get current time; same as: timer = time(NULL)  */
-                string to_send = PacketToHeader(packets[i]) + packets[i].data;
+                string to_send = PacketToHeader(packets[i]) + " data = " + packets[i].data;
                 sendto(fd, to_send.c_str(), strlen(to_send.c_str()), 0, (struct sockaddr *)&clientaddr, clientLen);
                 timers[i] = timer;
+                cout << to_send;
                 cout << "Sending packet " << packets[i].seq << " " << packets[i].wnd;
                 cout << endl;
             }
@@ -187,11 +189,12 @@ int main(int argc, char *argv[])
         {
             Packet ACK;
             string buffString = buffer;
+            cout << "HI" << endl;
             ACK = stringToPacket(buffString,ACK); //set ACK packet to info from client
             cwnd[ACK.element] = 0;
             timers[ACK.element] = 0;
             cwnd[++index] = 1;
-            cout << "Receiving packet " << ACK.ACK << endl; //print ACK to screen
+            cout << "Receiving packet " << ACK.seq << endl; //print ACK to screen
         }
 
         //Check timeouts
