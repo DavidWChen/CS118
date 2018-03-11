@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
             {
                 time(&timer);  /* get current time; same as: timer = time(NULL)  */
                 string to_send = PacketToHeader(packets[i]) + packets[i].data;
-                sendto(fd, to_send.c_str(), sizeof(to_send), 0, (struct sockaddr *)&clientaddr, clientLen);
+                sendto(fd, to_send.c_str(), strlen(to_send.c_str()), 0, (struct sockaddr *)&clientaddr, clientLen);
                 timers[i] = timer;
                 cout << "Sending packet " << packets[i].seq << " " << packets[i].wnd;
                 cout << endl;
@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
                 {
                     time(&timer);  /* get current time; same as: timer = time(NULL)  */
                     string to_send = PacketToHeader(packets[i]) + packets[i].data;
-                    sendto(fd, to_send.c_str(), sizeof(to_send), 0, (struct sockaddr *)&clientaddr, clientLen);
+                    sendto(fd, to_send.c_str(), strlen(to_send.c_str()), 0, (struct sockaddr *)&clientaddr, clientLen);
                     timers[i] = timer;
                     cout << "Sending packet " << packets[i].seq << " " << packets[i].wnd << " Retransmision";
                     cout << endl;
@@ -215,7 +215,7 @@ int main(int argc, char *argv[])
         {
             Packet FIN;
             string to_send = PacketToHeader(FIN);
-            sendto(fd, to_send.c_str(), sizeof(to_send), 0, (struct sockaddr *)&clientaddr, clientLen);
+            sendto(fd, to_send.c_str(), strlen(to_send.c_str()), 0, (struct sockaddr *)&clientaddr, clientLen);
             cout << "Sending packet " << FIN.seq << " " << FIN.wnd<< " FIN";
 
             //For 2 RTOs
