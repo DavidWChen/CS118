@@ -20,20 +20,17 @@ string filename;
 int portno;
 struct sockaddr_in serv_addr;
 struct hostent *server;  // contains tons of information, including the server's IP address
-//FILE * file;
 int numPacketsRecvd = 0;
 int numPackets = 0;
 
 string a = "received.data";
-
 ofstream received(a.c_str());
 
 int main(int argc, char *argv[])
-{
-    
+{   
     if (argc < 4) {
      fprintf(stderr,"usage %s hostname port\n", argv[0]);
-     exit(0);
+     exit(1);
     }
 
 //create socket
@@ -55,7 +52,8 @@ int main(int argc, char *argv[])
 
     portno = atoi(argv[2]);
     serveraddr.sin_family = AF_INET;
-    serveraddr.sin_port = htons(portno);              
+    serveraddr.sin_port = htons(portno); 
+    socklen_t serverLen = sizeof(serveraddr);             
     bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
 
     filename = argv[3];
@@ -71,20 +69,22 @@ int main(int argc, char *argv[])
     //char* data[896];
 
     string requestMessage = PacketToHeader(requestPkt); //create string of request packet
-
+    requestMessage = requestMessage + " data = ";
+    cout << getSubstring(requestMessage, "filename = ", " data = ") << '\n';
 
     while (sendto(fd, requestMessage.c_str(), strlen(requestMessage.c_str()), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0 ) //should we loop it so it keeps trying?
     {
         perror( "send request failed" );
     }
+    //add intial timeout
 
     cout << "Sending Packet SYN" << endl; //syn output
     cerr << "filename is " << requestPkt.filename << endl; //debugging purposes
 
     char buf[1024];
-    recvfrom( fd, buf, sizeof(buf), 0, NULL, 0 ); //receive the synack
+    recvfrom( fd, buf, sizeof(buf), 0, (struct sockaddr*)&serveraddr, &serverLen); //receive the synack
     string synAckstr = string(buf);
-
+    cout << "Receiving ACK" << '\n';
     //synack packet
     Packet synAck;
     synAck = stringToPacket(synAckstr, synAck);

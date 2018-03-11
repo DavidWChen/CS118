@@ -20,9 +20,6 @@
 #include <iostream>
 using namespace std;
 
-
-
-
 void ACKed(Packet packet, time_t timers[], bool cwnd[])//Server
 {
     timers[packet.element] = 0;
@@ -31,12 +28,12 @@ void ACKed(Packet packet, time_t timers[], bool cwnd[])//Server
 }
 
 int portno;
+FILE* file;
+int fileLen;
+char *buf;
+
 int main(int argc, char *argv[])
 {
-    FILE* file;
-    int fileLen;
-    char *buf;
-
     if (argc < 2) 
     {
         fprintf(stderr,"ERROR, no port provided\n");
@@ -73,14 +70,21 @@ int main(int argc, char *argv[])
     SYN = stringToPacket(buffString,SYN); //set SYN packet to info from client
     cout << "Receiving packet" << SYN.seq << endl; //print ACK to screen
 
+    // string too_send = "Test String Sent";
+    // sendto(fd, too_send.c_str(), sizeof(too_send), 0, (struct sockaddr *)&clientaddr, clientLen);
+    
+    //cout << SYN.filename;
     string requestedFile = SYN.filename;
-
+    //cout << requestedFile << '\n';
     if ((file = fopen(requestedFile.c_str(), "r")) == NULL)
     {
-        ;//set file to 404
+        cout << "404" << '\n';//set file to 404
+
+        file = fopen("404.html", "r");
     }
-
-
+    else
+        cout << "Not 404" << '\n';
+ ;          
 
     //read file into buffer, convert buffer to string called dataString
     fseek(file, 0, SEEK_END);
@@ -101,7 +105,16 @@ int main(int argc, char *argv[])
     string dataString = buf;
 
     int dataSize = 896;
-    int numPackets = ceil(sizeof(buffer)/dataSize); //may need to use a double
+    int numPackets = ceil(sizeof(buf)/dataSize); //may need to use a double
+
+    Packet SYNAck;
+    SYNAck.synFlag = 1;
+    SYNAck.ACK = 1;
+    SYNAck.numPkt = numPackets;
+    string to_send = PacketToHeader(SYNAck) + " data = ";
+    
+    sendto(fd, to_send.c_str(), sizeof(to_send), 0, (struct sockaddr *)&clientaddr, clientLen);
+    cout << "Sending ACK" << '\n';
 
     //establish arrays of packets, the windows in question, and timers for timeout sake
     Packet packets[numPackets];
@@ -152,7 +165,7 @@ int main(int argc, char *argv[])
             {
                 time(&timer);  /* get current time; same as: timer = time(NULL)  */
                 string to_send = PacketToHeader(packets[i]) + packets[i].data;
-                sendto(fd, to_send.c_str(), sizeof(to_send), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr));
+                sendto(fd, to_send.c_str(), sizeof(to_send), 0, (struct sockaddr *)&clientaddr, clientLen);
                 timers[i] = timer;
                 cout << "Sending packet " << packets[i].seq << " " << packets[i].wnd;
                 cout << endl;
@@ -180,7 +193,7 @@ int main(int argc, char *argv[])
                 {
                     time(&timer);  /* get current time; same as: timer = time(NULL)  */
                     string to_send = PacketToHeader(packets[i]) + packets[i].data;
-                    sendto(fd, to_send.c_str(), sizeof(to_send), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr));
+                    sendto(fd, to_send.c_str(), sizeof(to_send), 0, (struct sockaddr *)&clientaddr, clientLen);
                     timers[i] = timer;
                     cout << "Sending packet " << packets[i].seq << " " << packets[i].wnd << " Retransmision";
                     cout << endl;
@@ -192,7 +205,7 @@ int main(int argc, char *argv[])
         {
             Packet FIN;
             string to_send = PacketToHeader(FIN);
-            sendto(fd, to_send.c_str(), sizeof(to_send), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr));
+            sendto(fd, to_send.c_str(), sizeof(to_send), 0, (struct sockaddr *)&clientaddr, clientLen);
             cout << "Sending packet " << FIN.seq << " " << FIN.wnd<< " FIN";
 
             //For 2 RTOs
