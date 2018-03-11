@@ -85,6 +85,7 @@ int main(int argc, char *argv[])
     recvfrom( fd, buf, sizeof(buf), 0, (struct sockaddr*)&serveraddr, &serverLen); //receive the synack
     string synAckstr = string(buf);
     cout << "Receiving ACK" << '\n';
+////HandShake////////////////////////////////////////////////////////////////////////////
     //synack packet
     cout << synAckstr << '\n';
     Packet synAck;

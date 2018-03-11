@@ -34,6 +34,7 @@ char *buf;
 
 int main(int argc, char *argv[])
 {
+////Init Server/////////////////////////////////////////////////////////////
     if (argc < 2) 
     {
         fprintf(stderr,"ERROR, no port provided\n");
@@ -46,6 +47,7 @@ int main(int argc, char *argv[])
         perror( "socket failed" );
         return 1;
     }
+
     struct sockaddr_in serveraddr, clientaddr;
     socklen_t clientLen = sizeof(clientaddr);
     memset( &serveraddr, 0, sizeof(serveraddr) );
@@ -61,7 +63,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-///////
+///////HandShake/////////////////////////////////////////////////////////////////////
     char buffer[1024];
     int length = recvfrom(fd, buffer, sizeof(buffer)-1, 0, (struct sockaddr*)&clientaddr, &clientLen); //receive request from client
     string buffString = buffer;
@@ -83,8 +85,7 @@ int main(int argc, char *argv[])
         file = fopen("404.html", "r");
     }
     else
-        cout << "Not 404" << '\n';
- ;          
+        cout << "Not 404" << '\n';         
 
     //read file into buffer, convert buffer to string called dataString
     fseek(file, 0, SEEK_END);
@@ -113,10 +114,13 @@ int main(int argc, char *argv[])
     SYNAck.numPkt = numPackets;
     string to_send = PacketToHeader(SYNAck) + " data = ";
     cout << to_send << '\n';
-    sendto(fd, to_send.c_str(), sizeof(to_send), 0, (struct sockaddr *)&clientaddr, clientLen);
+    sendto(fd, to_send.c_str(), strlen(to_send.c_str()), 0, (struct sockaddr *)&clientaddr, clientLen);
     cout << "Sending ACK" << '\n';
-////HandShake//////////////
-    
+
+
+
+////Make Packets//////////////////////////////////////////////////////////////////////////////////////
+
     //establish arrays of packets, the windows in question, and timers for timeout sake
     Packet packets[numPackets];
     bool cwnd[numPackets];
