@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
         ackPackets[i].element = i;
         ackPackets[i].ACK = 1;
     }
-
+    cout << "NumpacketsRecvd = " << numPacketsRecvd << endl << "Numpackets = " << numPackets << endl; 
     while (numPacketsRecvd != numPackets)
     {
         char buff[1024];

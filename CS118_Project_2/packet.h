@@ -9,7 +9,7 @@ class Packet
 	public:
 	//timeout value = size 4
 	//flags = size 1
-	int element;
+	int element = 0;
 	int synFlag = 0;//for init
 	int finFlag = 0;//for close
 	int ACK = 0;//for recv
@@ -36,7 +36,7 @@ string getSubstring(string str, string pos_str1, string pos_str2)
 	size_t pos2 = str.find(pos_str2);
 	// cout << pos2 << '\n';
 	string rtn_val = str.substr(pos1+pos_str1.length(), pos2-pos1-pos_str1.length());
-	cout << "return " << rtn_val << '\n';
+	//cout << "return " << rtn_val << '\n';
 	return rtn_val;
 } 
 

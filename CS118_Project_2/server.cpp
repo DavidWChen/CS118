@@ -83,6 +83,7 @@ int main(int argc, char *argv[])
         cout << "404" << '\n';//set file to 404
 
         file = fopen("404.html", "r");
+        requestedFile = "404.html";
     }
     else
         cout << "Not 404" << '\n';         
@@ -104,14 +105,18 @@ int main(int argc, char *argv[])
     fclose(file);
 
     string dataString = buf;
+    cout << strlen(buf) << endl;
 
     int dataSize = 896;
-    int numPackets = ceil(sizeof(buf)/dataSize); //may need to use a double
+    int numPackets = ceil(strlen(buf)/double(dataSize)); //may need to use a double
+    cout << "numpackets server side = " << numPackets << endl;
 
     Packet SYNAck;
     SYNAck.synFlag = 1;
     SYNAck.ACK = 1;
     SYNAck.numPkt = numPackets;
+    SYNAck.filename = requestedFile;
+    cout << SYNAck.filename << endl;    
     string to_send = PacketToHeader(SYNAck) + " data = ";
     cout << to_send << '\n';
     sendto(fd, to_send.c_str(), strlen(to_send.c_str()), 0, (struct sockaddr *)&clientaddr, clientLen);
@@ -120,7 +125,7 @@ int main(int argc, char *argv[])
 
 
 ////Make Packets//////////////////////////////////////////////////////////////////////////////////////
-
+    cout << "IM HERE" << endl;
     //establish arrays of packets, the windows in question, and timers for timeout sake
     Packet packets[numPackets];
     bool cwnd[numPackets];
