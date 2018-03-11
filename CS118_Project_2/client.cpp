@@ -86,6 +86,7 @@ int main(int argc, char *argv[])
     string synAckstr = string(buf);
     cout << "Receiving ACK" << '\n';
     //synack packet
+    cout << synAckstr << '\n';
     Packet synAck;
     synAck = stringToPacket(synAckstr, synAck);
     numPackets = synAck.numPkt;

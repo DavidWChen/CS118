@@ -112,10 +112,11 @@ int main(int argc, char *argv[])
     SYNAck.ACK = 1;
     SYNAck.numPkt = numPackets;
     string to_send = PacketToHeader(SYNAck) + " data = ";
-    
+    cout << to_send << '\n';
     sendto(fd, to_send.c_str(), sizeof(to_send), 0, (struct sockaddr *)&clientaddr, clientLen);
     cout << "Sending ACK" << '\n';
-
+////HandShake//////////////
+    
     //establish arrays of packets, the windows in question, and timers for timeout sake
     Packet packets[numPackets];
     bool cwnd[numPackets];
