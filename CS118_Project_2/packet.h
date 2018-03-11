@@ -32,9 +32,9 @@ class Packet
 string getSubstring(string str, string pos_str1, string pos_str2)
 {
 	size_t pos1 = str.find(pos_str1);
-	cout << pos1 << '\n';
+	// cout << pos1 << '\n';
 	size_t pos2 = str.find(pos_str2);
-	cout << pos2 << '\n';
+	// cout << pos2 << '\n';
 	string rtn_val = str.substr(pos1+pos_str1.length(), pos2-pos1-pos_str1.length());
 	cout << "return " << rtn_val << '\n';
 	return rtn_val;
