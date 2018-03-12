@@ -108,10 +108,12 @@ int main(int argc, char *argv[])
         char buff[1024];
         recvfrom(fd, buff, sizeof(buff), 0, NULL, 0);
         string incomingMessage = string(buff);
+        cout << "Incoming: " <<  incomingMessage<< endl;
         Packet temp;
         temp = stringToPacket(incomingMessage, temp);
         cout << "Receiving packet " << temp.seq << endl;
         arrayOfPackets[temp.element] = temp;
+        cout << "DATA: " << temp.data << endl;
         received << temp.data;
         if (arrayOfRecvdPackets[temp.element] == 1)
         {

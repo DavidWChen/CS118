@@ -33,7 +33,7 @@
         }
         @media only screen and (max-width: 280px) {
             body, p {
-       element = 0 synFlag = 1 finFlag = 0 ACK = 1 request = 0 lastPkt = 0 retransmit = 1972379648 seq = 0 wnd = 5120 pktSize = 1024 srcPort = 0 dstPort = 0 numPkt = 2 filename = 404.html data =  data = 
+       element = 0 synFlag = 1 finFlag = 0 ACK = 1 request = 0 lastPkt = 0 retransmit = -225244771 seq = 0 wnd = 5120 pktSize = 1024 srcPort = 0 dstPort = 0 numPkt = 2 filename = 404.html data =  data = 
                 font-size: 1.5em;
                 margin: 0 0 0.3em;
             }
@@ -67,4 +67,4 @@
         }
         @media only screen and (max-width: 280px) {
             body, p {
-       element = 0 synFlag = 1 finFlag = 0 ACK = 1 request = 0 lastPkt = 0 retransmit = 1972379648 seq = 0 wnd = 5120 pktSize = 1024 srcPort = 0 dstPort = 0 numPkt = 2 filename = 404.html data = 
+       element = 0 synFlag = 1 finFlag = 0 ACK = 1 request = 0 lastPkt = 0 retransmit = -225244771 seq = 0 wnd = 5120 pktSize = 1024 srcPort = 0 dstPort = 0 numPkt = 2 filename = 404.html data = 

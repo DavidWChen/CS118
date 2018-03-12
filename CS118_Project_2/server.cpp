@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
     SYNAck.filename = requestedFile;
     cout << SYNAck.filename << endl;    
     string to_send = PacketToHeader(SYNAck) + " data = ";
-    cout << to_send << '\n';
+    //cout << to_send << '\n';
     sendto(fd, to_send.c_str(), strlen(to_send.c_str()), 0, (struct sockaddr *)&clientaddr, clientLen);
     cout << "Sending packet 0 5120 SYN" << '\n';
 
@@ -181,7 +181,9 @@ int main(int argc, char *argv[])
             if (cwnd[i] == 1 && timers[i] == 0)
             {
                 time(&timer);  /* get current time; same as: timer = time(NULL)  */
+                cout << " DATA: " << packets[i].data;
                 string to_send = PacketToHeader(packets[i]) + " data = " + packets[i].data;
+                cout << "TO_SEND: " << to_send << endl;
                 sendto(fd, to_send.c_str(), strlen(to_send.c_str()), 0, (struct sockaddr *)&clientaddr, clientLen);
                 timers[i] = timer;
                 //cout << to_send;
