@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
     string to_send = PacketToHeader(SYNAck) + " data = ";
     cout << to_send << '\n';
     sendto(fd, to_send.c_str(), strlen(to_send.c_str()), 0, (struct sockaddr *)&clientaddr, clientLen);
-    cout << "Sending ACK" << '\n';
+    cout << "Sending packet 0 5120 SYN" << '\n';
 
 
 
@@ -229,7 +229,36 @@ int main(int argc, char *argv[])
            break;
         }
     }
-    
-    cout << "AT END" << endl;
+    recvfrom( fd, buffer, sizeof(buffer) - 1, 0, (struct sockaddr*)&clientaddr, &clientLen);
+
+    Packet FIN;
+    buffString = buffer;
+    FIN = stringToPacket(buffString,FIN);
+    //cout << buffString << endl;
+    cout << "Receiving packet " << FIN.seq << endl;
+    //if( FIN.finFlag == 1)
+
+    Packet FINACK;
+    FINACK.finFlag = 1;
+    FINACK.ACK = 1;
+    FINACK.seq = FIN.seq;
+    to_send = PacketToHeader(FINACK) + " data = ";
+    sendto(fd, to_send.c_str(), strlen(to_send.c_str()), 0, (struct sockaddr *)&clientaddr, clientLen);
+    cout << "Sending packet " << FINACK.seq << " " << FINACK.wnd << " FIN" << endl;
+
+    Packet FINFIN;
+    FINFIN.finFlag = 1;
+    FINFIN.ACK = 1;
+    FINFIN.seq = FIN.seq;
+    to_send = PacketToHeader(FINFIN) + " data = ";
+    sendto(fd, to_send.c_str(), strlen(to_send.c_str()), 0, (struct sockaddr *)&clientaddr, clientLen);
+    cout << "Sending packet " << FINFIN.seq << " " << FINFIN.wnd << " FIN" << endl;
+
+    recvfrom( fd, buffer, sizeof(buffer) - 1, 0, (struct sockaddr*)&clientaddr, &clientLen);
+    buffString = buffer;
+    FIN = stringToPacket(buffString,FIN);
+    cout << "Receiving packet " << FIN.seq << endl;
+    //if(FIN)
+    //cout << "AT END" << endl;
     close( fd );
 }

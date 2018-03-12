@@ -144,12 +144,14 @@ int main(int argc, char *argv[])
         }
 
     }
-
+    //cout << arrayOfPackets[numPackets-1].seq << endl;
+    //cout << (arrayOfPackets[numPackets-1].data).size() << endl;
+    int lastSeq = arrayOfPackets[numPackets-1].seq + (arrayOfPackets[numPackets-1].data).size();
     Packet FIN;
     FIN.finFlag = 1;
+    FIN.seq = lastSeq%30720;
     string fin = PacketToHeader(FIN) + " data = ";
 
-    int lastSeq = arrayOfPackets[numPackets].seq + (arrayOfPackets[numPackets].data).size();
     cout << "Sending packet " << lastSeq%30720 << " FIN" << endl;
     sendto(fd, fin.c_str(), strlen(fin.c_str()), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)); //send FIN
 
@@ -160,11 +162,13 @@ int main(int argc, char *argv[])
     Packet FinAckfs;
     FinAckfs = stringToPacket(finackfsstr, FinAckfs);
     cout << "Receiving packet " << FinAckfs.seq << endl;
+    // cout << "in Flag: " << FinAckfs.finFlag << "ACK: " << FinAckfs.ACK << endl;
     if (FinAckfs.finFlag == 1 && FinAckfs.ACK == 1) //what if its not
     {
         char finfs[1024];
         recvfrom(fd, finfs, sizeof(finfs), 0, NULL, 0);
         string finfsstr = string(finfs);
+        //cout << finfsstr << endl;
         Packet Finfs;
         Finfs = stringToPacket(finfsstr, Finfs);
         cout << "Receiving packet " << FinAckfs.seq << endl;
@@ -174,8 +178,10 @@ int main(int argc, char *argv[])
             Packet FINACK;
             FINACK.finFlag = 1;
             FINACK.ACK = 1;
+            FINACK.seq = Finfs.seq;
             string finack = PacketToHeader(FINACK) + " data = ";
             sendto(fd, finack.c_str(), strlen(finack.c_str()), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)); //send FINACL
+            cout << "Sending packet " << FINACK.seq << endl;
             usleep(1000000);
             close(fd);
             return 0;
