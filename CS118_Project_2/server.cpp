@@ -131,6 +131,12 @@ int main(int argc, char *argv[])
     bool cwnd[numPackets];
     time_t timers[numPackets];
 
+    for (int i = 0; i < numPackets; i++)
+    {
+        cwnd[i] = 0;
+        timers[i] = 0;
+    }
+
     //initialize all the packets
     for (int i = 0; i < numPackets; i++)
     {
@@ -164,7 +170,7 @@ int main(int argc, char *argv[])
         //Set cwnd
         while(sndPkt <= 5)
         {     
-            cwnd[index] = 1;
+            cwnd[index] = 1; //check later
             index++;
             sndPkt++;
         }
@@ -172,19 +178,20 @@ int main(int argc, char *argv[])
         //Send Packets
         for(int i = 0; i< numPackets; i++)
         {
-            if (cwnd[i] == 1)
+            if (cwnd[i] == 1 && timers[i] == 0)
             {
                 time(&timer);  /* get current time; same as: timer = time(NULL)  */
                 string to_send = PacketToHeader(packets[i]) + " data = " + packets[i].data;
                 sendto(fd, to_send.c_str(), strlen(to_send.c_str()), 0, (struct sockaddr *)&clientaddr, clientLen);
                 timers[i] = timer;
-                cout << to_send;
+                //cout << to_send;
                 cout << "Sending packet " << packets[i].seq << " " << packets[i].wnd;
                 cout << endl;
             }
         }
         
         //Receive ACK 
+        //cout <<"I'm Stuck" << endl;
         if((recvfrom( fd, buffer, sizeof(buffer) - 1, 0, (struct sockaddr*)&clientaddr, &clientLen)) >= 0)
         {
             Packet ACK;
@@ -213,20 +220,16 @@ int main(int argc, char *argv[])
                 }
             }
         }
-
+        for (int i = 0; i < numPackets; i++)
+        {
+            cout << cwnd[i] << endl;
+        }
         if ( all_of(cwnd, cwnd+numPackets, [](int i){return i == 0;})  )
         {
-            Packet FIN;
-            string to_send = PacketToHeader(FIN);
-            sendto(fd, to_send.c_str(), strlen(to_send.c_str()), 0, (struct sockaddr *)&clientaddr, clientLen);
-            cout << "Sending packet " << FIN.seq << " " << FIN.wnd<< " FIN";
-
-            //For 2 RTOs
-            int length = recvfrom( fd, buffer, sizeof(buffer) - 1, 0, (struct sockaddr*)&clientaddr, &clientLen);
-
-            //Send FINACK
+           break;
         }
     }
     
+    cout << "AT END" << endl;
     close( fd );
 }

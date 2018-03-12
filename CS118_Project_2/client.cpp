@@ -189,32 +189,4 @@ int main(int argc, char *argv[])
 
 
 
-
-
-
-
-
-    /*bool lastPacket = 0;
-
-    while(!lastPacket)
-    {
-        int length = recvfrom( fd, file, sizeof(file), 0, NULL, 0 );
-        if ( length < 0 ) 
-        {
-            perror( "recvfrom failed" );
-            break;
-        }
-
-        lastPacket=packet.lastPkt;
-    }
-
-    for ( int i = 0; i < 4; i++ ) {
-        if (sendto( fd, "hello", 5, 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0 ) {
-            perror( "sendto failed" );
-            break;
-        }
-        printf( "message sent\n" );
-    }
-
-    close( fd );*/
 }

@@ -42,7 +42,7 @@ string getSubstring(string str, string pos_str1, string pos_str2)
 
 Packet stringToPacket(string str, Packet packet)
 {
-	cout << '\n' << '\n' << "STRING: " << str <<'\n';
+	//cout << '\n' << '\n' << "STRING: " << str <<'\n';
 	packet.element = stoi(getSubstring(str, " element = ", " synFlag = "));
 	packet.synFlag = stoi(getSubstring(str, " synFlag = ", " finFlag = "));
 	packet.finFlag = stoi(getSubstring(str, " finFlag = ", " ACK = "));
