@@ -84,10 +84,13 @@ int main(int argc, char *argv[])
     char buf[1024];
     recvfrom( fd, buf, sizeof(buf), 0, (struct sockaddr*)&serveraddr, &serverLen); //receive the synack
     string synAckstr = string(buf);
-    cout << "Receiving ACK" << '\n';
+    Packet SYNACK;
+    
+    memset( buf, '\0', sizeof(char)*1024);
+    cout << "Receiving Packet << ACK" << '\n';
 ////HandShake////////////////////////////////////////////////////////////////////////////
     //synack packet
-    cout << synAckstr << '\n';
+    //cout << synAckstr << '\n';
     Packet synAck;
     synAck = stringToPacket(synAckstr, synAck);
     numPackets = synAck.numPkt;
@@ -106,14 +109,15 @@ int main(int argc, char *argv[])
     while (numPacketsRecvd != numPackets)
     {
         char buff[1024];
-        recvfrom(fd, buff, sizeof(buff), 0, NULL, 0);
+        memset( buff, '\0', sizeof(char)*1024);
+        recvfrom(fd, buff, sizeof(buff)+100, 0, NULL, 0);
         string incomingMessage = string(buff);
-        cout << "Incoming: " <<  incomingMessage<< endl;
+        // cout << "Incoming: " <<  incomingMessage<< endl;
         Packet temp;
         temp = stringToPacket(incomingMessage, temp);
         cout << "Receiving packet " << temp.seq << endl;
         arrayOfPackets[temp.element] = temp;
-        cout << "DATA: " << temp.data << endl;
+        // cout << "DATA: " << temp.data << endl;
         received << temp.data;
         if (arrayOfRecvdPackets[temp.element] == 1)
         {
@@ -144,7 +148,7 @@ int main(int argc, char *argv[])
         {
             numPacketsRecvd = counter; //if the counter
         }
-
+        cout << "numpkt: " << numPackets << "received: " << numPacketsRecvd << endl;
     }
     //cout << arrayOfPackets[numPackets-1].seq << endl;
     //cout << (arrayOfPackets[numPackets-1].data).size() << endl;

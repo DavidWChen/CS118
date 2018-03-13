@@ -28,12 +28,13 @@ void ACKed(Packet packet, time_t timers[], bool cwnd[])//Server
 }
 
 int portno;
-FILE* file;
-int fileLen;
-char *buf;
+
 
 int main(int argc, char *argv[])
 {
+    FILE* file;
+    int fileLen;
+    char *buf;
 ////Init Server/////////////////////////////////////////////////////////////
     if (argc < 2) 
     {
@@ -105,18 +106,18 @@ int main(int argc, char *argv[])
     fclose(file);
 
     string dataString = buf;
-    cout << strlen(buf) << endl;
+    //cout << strlen(buf) << " This is the file: " << dataString << endl;
 
     int dataSize = 896;
     int numPackets = ceil(strlen(buf)/double(dataSize)); //may need to use a double
-    cout << "numpackets server side = " << numPackets << endl;
+    //cout << "numpackets server side = " << numPackets << endl;
 
     Packet SYNAck;
     SYNAck.synFlag = 1;
     SYNAck.ACK = 1;
     SYNAck.numPkt = numPackets;
     SYNAck.filename = requestedFile;
-    cout << SYNAck.filename << endl;    
+    //cout << SYNAck.filename << endl;    
     string to_send = PacketToHeader(SYNAck) + " data = ";
     //cout << to_send << '\n';
     sendto(fd, to_send.c_str(), strlen(to_send.c_str()), 0, (struct sockaddr *)&clientaddr, clientLen);
@@ -125,7 +126,6 @@ int main(int argc, char *argv[])
 
 
 ////Make Packets//////////////////////////////////////////////////////////////////////////////////////
-    cout << "IM HERE" << endl;
     //establish arrays of packets, the windows in question, and timers for timeout sake
     Packet packets[numPackets];
     bool cwnd[numPackets];
@@ -144,9 +144,17 @@ int main(int argc, char *argv[])
         packets[i].seq = (dataSize*i+1)%30720; //set all sequence numbers for packets
         size_t begin = packets[i].seq;
         size_t length = dataSize/sizeof(char);
-        packets[i].data = dataString.substr(begin,length); //read in all the data into the packets
+        packets[i].data = dataString.substr(begin-1,length); //read in all the data into the packets
         packets[i].filename = requestedFile;
+
     }
+    for (int i = 0; i < numPackets; i++)
+        {
+            cout << "ELE: " << packets[i].element << endl;
+            cout << "SEQ: " << packets[i].seq << endl;
+            cout << "DATA: "<< packets[i].data[0] << endl;
+        }
+    cout << "Last Seq: " << packets[numPackets-1].seq;
 
 
 
@@ -181,9 +189,9 @@ int main(int argc, char *argv[])
             if (cwnd[i] == 1 && timers[i] == 0)
             {
                 time(&timer);  /* get current time; same as: timer = time(NULL)  */
-                cout << " DATA: " << packets[i].data;
+                // cout << " DATA: " << packets[i].data << endl;
                 string to_send = PacketToHeader(packets[i]) + " data = " + packets[i].data;
-                cout << "TO_SEND: " << to_send << endl;
+                // cout << "TO_SEND: " << to_send << endl;
                 sendto(fd, to_send.c_str(), strlen(to_send.c_str()), 0, (struct sockaddr *)&clientaddr, clientLen);
                 timers[i] = timer;
                 //cout << to_send;
@@ -198,11 +206,12 @@ int main(int argc, char *argv[])
         {
             Packet ACK;
             string buffString = buffer;
-            cout << "HI" << endl;
+            //cout << "HI" << endl;
             ACK = stringToPacket(buffString,ACK); //set ACK packet to info from client
             cwnd[ACK.element] = 0;
             timers[ACK.element] = 0;
-            cwnd[++index] = 1;
+            // cwnd[++index] = 1;
+            sndPkt--;
             cout << "Receiving packet " << ACK.seq << endl; //print ACK to screen
         }
 
@@ -222,10 +231,10 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        for (int i = 0; i < numPackets; i++)
-        {
-            cout << cwnd[i] << endl;
-        }
+        // for (int i = 0; i < numPackets; i++)
+        // {
+        //     cout << cwnd[i] << endl;
+        // }
         if ( all_of(cwnd, cwnd+numPackets, [](int i){return i == 0;})  )
         {
            break;

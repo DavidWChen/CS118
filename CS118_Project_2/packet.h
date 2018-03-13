@@ -60,7 +60,7 @@ Packet stringToPacket(string str, Packet packet)
     packet.filename = getSubstring(str, "filename = ", " data = ");
     size_t pkt_pos = str.find(" data = ");
     //cout << "pkt pos" << pkt_pos << '\n';
-    packet.data = str.substr(pkt_pos);//may need to cast to char
+    packet.data = str.substr(pkt_pos+8);//may need to cast to char
 
 	return packet;
 }
