@@ -1,6 +1,7 @@
 CC=g++
 CPPFLAGS=-g -Wall -std=c++11
-USERID=904622289
+USERID1=904622289
+USERID2=704579512
 CLASSES=
 
 default: clean all
@@ -19,4 +20,4 @@ clean:
 dist: tarball
 
 tarball: clean
-	tar -cvzf /tmp/$(USERID).tar.gz --exclude=./.vagrant . && mv /tmp/$(USERID).tar.gz .
+	tar -cvzf project2_704579512_9046222289.tar server.cpp client.cpp packet.h *.bin README Makefile *.doc

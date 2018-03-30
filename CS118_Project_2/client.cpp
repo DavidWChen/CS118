@@ -3,7 +3,7 @@
 #include <iostream>
 #include <netdb.h>      // define structures like hostent
 #include <netinet/in.h>
-#include <signal.h>  /* signal name macros, and the kill() prototype */
+#include <signal.h>     /* signal name macros, and the kill() prototype */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>     // Needed for Strlen
@@ -14,18 +14,15 @@
 #include <unistd.h> 
 #include "packet.h"
 #include <fstream>
+#include <sys/time.h>
 using namespace std;
 
-string filename;
 int portno;
 struct sockaddr_in serv_addr;
-struct hostent *server;  // contains tons of information, including the server's IP address
+struct hostent *server;       // contains tons of information, including the server's IP address
+
+FILE* rfd;
 int numPacketsRecvd = 0;
-int numPackets = 0;
-
-string a = "received.data";
-ofstream received(a.c_str());
-
 int main(int argc, char *argv[])
 {   
     if (argc < 4) {
@@ -33,7 +30,7 @@ int main(int argc, char *argv[])
      exit(1);
     }
 
-//create socket
+////Create Socket////
     server = gethostbyname(argv[1]);  // takes a string like "www.yahoo.com", and returns a struct hostent which contains information, as IP address, address type, the length of the addresses...
     if (server == NULL) 
     {
@@ -46,7 +43,6 @@ int main(int argc, char *argv[])
         perror("socket failed");
         return 1;
     }
-    printf("got here\n" );
     struct sockaddr_in serveraddr;
     memset( &serveraddr, 0, sizeof(serveraddr) );
 
@@ -56,86 +52,88 @@ int main(int argc, char *argv[])
     socklen_t serverLen = sizeof(serveraddr);             
     bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
 
+////Handshake////
+    char * filename;
     filename = argv[3];
-    cout << filename;
+    Packet SYN;
+    SYN.synFlag = 1;
+    SYN.element = 9876;
+    memcpy(SYN.data, filename, sizeof(filename)/sizeof(char));
 
-    Packet requestPkt;
+    uint8_t sbuffer [1024];
 
-    requestPkt.filename = filename;
-    requestPkt.synFlag = 1;
-    requestPkt.request = 1;
-    //packet.sourcePort;
-    requestPkt.dstPort = portno;
-    //char* data[896];
-
-    string requestMessage = PacketToHeader(requestPkt); //create string of request packet
-    requestMessage = requestMessage + " data = ";
-    cout << getSubstring(requestMessage, "filename = ", " data = ") << '\n';
-
-    while (sendto(fd, requestMessage.c_str(), strlen(requestMessage.c_str()), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0 ) //should we loop it so it keeps trying?
+    PacketToBuffer(SYN, sbuffer);
+    while (sendto(fd, sbuffer, 1024, 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0 ) //should we loop it so it keeps trying?
     {
-        perror( "send request failed" );
+         perror( "send request failed" );
     }
-    //add intial timeout
+    cout << "Sending packet SYN" << endl;
 
-    cout << "Sending Packet SYN" << endl; //syn output
-    cerr << "filename is " << requestPkt.filename << endl; //debugging purposes
-
-    char buf[1024];
-    recvfrom( fd, buf, sizeof(buf), 0, (struct sockaddr*)&serveraddr, &serverLen); //receive the synack
-    string synAckstr = string(buf);
+    uint8_t rbuffer [1024];
+    recvfrom( fd, rbuffer, sizeof(rbuffer), 0, (struct sockaddr*)&serveraddr, &serverLen); //receive the synack
     Packet SYNACK;
-    
-    memset( buf, '\0', sizeof(char)*1024);
-    cout << "Receiving Packet << ACK" << '\n';
-////HandShake////////////////////////////////////////////////////////////////////////////
-    //synack packet
-    //cout << synAckstr << '\n';
-    Packet synAck;
-    synAck = stringToPacket(synAckstr, synAck);
-    numPackets = synAck.numPkt;
+    SYNACK = BufferToPacket(rbuffer);
+    int numPackets = int(SYNACK.numPkt);
+    cout << "Receiving packet " << SYNACK.seq << '\n';
+
+    char* fileLen = (char*)SYNACK.data;
+    string FL = string(fileLen);
+    int len = stoi(FL);
+
+
+////Main Client////
+
+    rfd = fopen("received.data", "wb+");
 
     Packet arrayOfPackets[numPackets]; //all packets coming through the pipe
     Packet ackPackets[numPackets];
-    bool * arrayOfRecvdPackets = new bool[numPackets];
+    bool arrayOfRecvdPackets[numPackets];
     fill(arrayOfRecvdPackets, arrayOfRecvdPackets + numPackets, 0); //1 for every packet received
 
     for (int i = 0; i < numPackets; i++)
     {
         ackPackets[i].element = i;
-        ackPackets[i].ACK = 1;
+        arrayOfPackets[i].element = '\0';
+        ackPackets[i].ackFlag = 1;
     }
-    cout << "NumpacketsRecvd = " << numPacketsRecvd << endl << "Numpackets = " << numPackets << endl; 
+
     while (numPacketsRecvd != numPackets)
     {
-        char buff[1024];
-        memset( buff, '\0', sizeof(char)*1024);
-        recvfrom(fd, buff, sizeof(buff)+100, 0, NULL, 0);
-        string incomingMessage = string(buff);
-        // cout << "Incoming: " <<  incomingMessage<< endl;
+        memset( rbuffer, '\0', sizeof(char)*1024);
+        recvfrom(fd, rbuffer, 1024, 0, NULL, 0);
         Packet temp;
-        temp = stringToPacket(incomingMessage, temp);
+        temp = BufferToPacket(rbuffer);
+
         cout << "Receiving packet " << temp.seq << endl;
-        arrayOfPackets[temp.element] = temp;
-        // cout << "DATA: " << temp.data << endl;
-        received << temp.data;
+
+        if (arrayOfPackets[temp.element].element == '\0')
+        {
+            arrayOfPackets[temp.element] = temp;
+        }
+
         if (arrayOfRecvdPackets[temp.element] == 1)
         {
-            //ack got dropped
+            //Packet Dropped
             ackPackets[temp.element].seq = temp.seq;
             cout << "Sending packet " << temp.seq%30720 << " Retransmission" << endl;
-            string ack = PacketToHeader(ackPackets[temp.element]) + " data = ";
-            sendto(fd, ack.c_str(), strlen(ack.c_str()), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)); 
+
+            PacketToBuffer(ackPackets[temp.element], sbuffer);
+
+            sendto(fd, sbuffer, 1024, 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)); 
+
         }
         else if (arrayOfRecvdPackets[temp.element] == 0)
         {
-            //send ack
-            arrayOfRecvdPackets[temp.element] = 1;
+            //Send Ack
             ackPackets[temp.element].seq = temp.seq%30720;
+            PacketToBuffer(ackPackets[temp.element], sbuffer);
+
+            arrayOfRecvdPackets[temp.element] = 1;
             cout << "Sending packet " << temp.seq << endl;
-            string ack = PacketToHeader(ackPackets[temp.element]) + " data = ";
-            sendto(fd, ack.c_str(), strlen(ack.c_str()), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)); 
+            sendto(fd, sbuffer, 1024, 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)); 
+
         }
+
         int counter = 0;
         for (int i = 0; i < numPackets; i++)
         {
@@ -148,57 +146,77 @@ int main(int argc, char *argv[])
         {
             numPacketsRecvd = counter; //if the counter
         }
-        cout << "numpkt: " << numPackets << "received: " << numPacketsRecvd << endl;
     }
-    //cout << arrayOfPackets[numPackets-1].seq << endl;
-    //cout << (arrayOfPackets[numPackets-1].data).size() << endl;
-    int lastSeq = arrayOfPackets[numPackets-1].seq + (arrayOfPackets[numPackets-1].data).size();
+    for (int i = 0; i < numPackets; i++)
+    {
+    	if( i == numPackets - 1)
+    	{
+    		int a = len%1011;
+    		fwrite(arrayOfPackets[i].data, a, 1, rfd);
+    		break;
+    	}
+    	else
+    	{
+    		fwrite(arrayOfPackets[i].data, 1011, 1, rfd);
+    	}
+    }
+    
+    timeval start_time,  curr_time;
+    gettimeofday(&start_time, nullptr);
+    gettimeofday(&curr_time, nullptr);
+
+    while ((((curr_time.tv_sec*1000) + (curr_time.tv_usec/1000) - (start_time.tv_sec*1000) + (start_time.tv_usec/1000))) < 5000)
+    {
+		if ((recvfrom( fd, rbuffer, 1024, MSG_DONTWAIT, NULL, 0)) >= 0)
+		{
+			Packet temp;
+        	temp = BufferToPacket(rbuffer);
+        	PacketToBuffer(ackPackets[temp.element], sbuffer);
+			cout << "Receiving packet " << temp.seq << endl;
+            sendto(fd, sbuffer, 1024, 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr));
+            cout << "Sending packet " << temp.seq << "Retransmission" << endl; 
+			break;
+		}
+		gettimeofday(&curr_time, nullptr);
+    }
+    
+    int lastSeq = arrayOfPackets[numPackets-1].seq + len%1011;
     Packet FIN;
     FIN.finFlag = 1;
     FIN.seq = lastSeq%30720;
-    string fin = PacketToHeader(FIN) + " data = ";
-
+    PacketToBuffer(FIN, sbuffer);
     cout << "Sending packet " << lastSeq%30720 << " FIN" << endl;
-    sendto(fd, fin.c_str(), strlen(fin.c_str()), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)); //send FIN
+    sendto(fd, sbuffer, 1024, 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)); 
 
     //fs = from server
-    char finackfs[1024];
-    recvfrom(fd, finackfs, sizeof(finackfs), 0, NULL, 0);
-    string finackfsstr = string(finackfs);
+    recvfrom(fd, rbuffer, 1024, 0, NULL, 0);
     Packet FinAckfs;
-    FinAckfs = stringToPacket(finackfsstr, FinAckfs);
+    FinAckfs = BufferToPacket(rbuffer);
     cout << "Receiving packet " << FinAckfs.seq << endl;
-    // cout << "in Flag: " << FinAckfs.finFlag << "ACK: " << FinAckfs.ACK << endl;
-    if (FinAckfs.finFlag == 1 && FinAckfs.ACK == 1) //what if its not
+
+    if (FinAckfs.finFlag == 1 && FinAckfs.ackFlag == 1) //what if its not
     {
-        char finfs[1024];
-        recvfrom(fd, finfs, sizeof(finfs), 0, NULL, 0);
-        string finfsstr = string(finfs);
-        //cout << finfsstr << endl;
+        recvfrom(fd, rbuffer, 1011, 0, NULL, 0);
         Packet Finfs;
-        Finfs = stringToPacket(finfsstr, Finfs);
+        Finfs = BufferToPacket(rbuffer);
         cout << "Receiving packet " << FinAckfs.seq << endl;
 
         if (Finfs.finFlag == 1)
         {
             Packet FINACK;
             FINACK.finFlag = 1;
-            FINACK.ACK = 1;
+            FINACK.ackFlag = 1;
             FINACK.seq = Finfs.seq;
-            string finack = PacketToHeader(FINACK) + " data = ";
-            sendto(fd, finack.c_str(), strlen(finack.c_str()), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)); //send FINACL
+            PacketToBuffer(FINACK, sbuffer);
+            sendto(fd, sbuffer, 1024, 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)); 
             cout << "Sending packet " << FINACK.seq << endl;
             usleep(1000000);
             close(fd);
             return 0;
         }
-
     }
 
 
-
-
-
-
-
+    close(fd);
 }
+
